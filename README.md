@@ -1,130 +1,90 @@
-# Vi-Notes
+# Vi Notes
 
-**Vi-Notes** is an authenticity verification platform designed to distinguish genuine human-written content from AI-generated or AI-assisted text. The system focuses on analyzing **writing behavior** alongside **statistical and linguistic characteristics** of the text to establish reliable authorship verification.
+Vi Notes is a full-stack writing-session manager with autosave, persistent DB storage, search/filter, tags, and private user notes.
 
-This repository represents the **design and conceptual foundation** for the Vi-Notes system.
+## Stack
+- Frontend: React + Vite + Tailwind CSS
+- Backend: Node.js + Express
+- DB: MongoDB (Mongoose)
+- Auth: JWT + bcrypt
 
----
+## Project Structure
+- `client/` frontend app
+- `server/` backend API
+- `server/src/models` database models
+- `client/src/components` reusable UI components
+- `client/src/pages` app pages
 
-## Motivation
+## Setup
+1. Install dependencies:
+```bash
+npm install
+npm install -w server
+npm install -w client
+```
+2. Configure env files:
+- Copy `server/.env.example` to `server/.env`
+- Copy `client/.env.example` to `client/.env`
+3. Start MongoDB (local or Atlas URI in `server/.env`)
+4. Run:
+```bash
+npm run dev
+```
+- Client: `http://localhost:5173`
+- Server: `http://localhost:5000`
 
-With the widespread availability of AI writing tools, verifying true human authorship has become increasingly challenging. Most existing detection methods rely primarily on textual analysis, which can be inconsistent and easy to bypass.
+## Environment Variables
+Server (`server/.env`):
+- `NODE_ENV` = `development`
+- `PORT` = `5000`
+- `MONGODB_URI` = MongoDB connection string
+- `JWT_SECRET` = JWT signing secret
+- `CLIENT_ORIGIN` = frontend URL
 
-Vi-Notes approaches this problem by combining:
-- Behavioral signals from the writing process
-- Statistical analysis of the written content
-- Correlation between how content is written and what is written
+Client (`client/.env`):
+- `VITE_API_URL` = `http://localhost:5000/api`
 
----
+## Data Schema
+`Session`
+- `_id`
+- `userId` (ObjectId ref `User`)
+- `title` (string)
+- `content` (string)
+- `wordCount` (number)
+- `startTime` (date)
+- `endTime` (date|null)
+- `duration` (seconds)
+- `tags` (string[])
+- `lastEditedAt` (date)
+- `createdAt` (date)
+- `updatedAt` (date)
 
-## Core Idea
+## API Endpoints
+Base URL: `/api`
 
-Human writing naturally includes:
-- Variable typing speeds
-- Pauses during thinking
-- Revisions during idea formation
-- Irregular sentence structures
-- A relationship between content complexity and editing frequency
+Auth:
+- `POST /auth/signup`
+  - body: `{ name, email, password }`
+- `POST /auth/login`
+  - body: `{ email, password }`
 
-AI-generated or pasted text often lacks these behavioral signatures.
+Sessions (Bearer token required):
+- `GET /sessions?q=&tag=&from=&to=` list with search + filters
+- `GET /sessions/tags` list tags
+- `POST /sessions` create session
+- `GET /sessions/:id` get one
+- `PUT /sessions/:id` update (used by autosave)
+- `DELETE /sessions/:id` delete
 
-Vi-Notes is designed to capture and analyze these characteristics to assess authorship authenticity.
+Health:
+- `GET /health`
 
----
+## Autosave Logic
+- Debounced autosave on typing stop (~1.2s)
+- Timed autosave every 8s
+- Manual Save button
+- Live word count while typing
+- Session duration recalculated server-side on update
 
-## Key Features
-
-### Writing Session Monitoring
-- Capture keystroke timing metadata (not raw key content)
-- Track pauses, deletions, edits, and writing flow
-- Detect pasted or externally inserted text blocks
-
-### Behavioral Pattern Analysis
-- Pause distribution before sentences and paragraphs
-- Typing speed variance
-- Revision frequency relative to text complexity
-- Micro-pauses around punctuation and structural boundaries
-
-### Textual Statistical Analysis
-- Sentence length variation
-- Vocabulary diversity metrics
-- Stylistic consistency analysis
-- Linguistic irregularities typical of human writing
-
-### Cross-Verification Engine
-- Correlate keyboard behavior with text evolution
-- Identify mismatches between behavioral data and content
-- Flag suspicious uniformity patterns
-
-### Authenticity Reports
-- Confidence score for human authorship
-- Highlighted suspicious segments
-- Supporting behavioral and textual indicators
-- Shareable verification summaries
-
----
-
-## Tech Stack (MERN Architecture)
-
-### Frontend
-- React
-- TypeScript
-- Electron for desktop-level keyboard event access
-
-### Backend
-- Node.js
-- Express.js
-- RESTful APIs for session handling and analysis
-
-### Database
-- MongoDB
-- Encrypted storage for writing sessions, keystroke metadata, and reports
-
-### Machine Learning
-- TensorFlow / PyTorch
-- Supervised learning for human vs AI-assisted writing
-- Unsupervised anomaly detection
-- NLP-based statistical signature analysis
-
----
-
-## Privacy & Ethics
-
-Vi-Notes is designed with privacy-first principles:
-
-- No storage of raw keystroke content
-- Only timing, frequency, and structural metadata is collected
-- Encrypted data storage
-- User-controlled session tracking
-- Monitoring limited strictly to active writing sessions
-
----
-
-## Project Goals
-
-- Restore trust in written content authenticity
-- Differentiate between human-written, AI-assisted, and AI-generated text
-- Adapt detection methods as AI writing tools evolve
-- Maintain ethical, transparent, and privacy-conscious verification
-
----
-
-## Repository Scope
-
-This repository currently serves as:
-- A design reference
-- A research and experimentation space
-- A foundation for future MERN-based implementation
-
----
-
-## Contributing
-
-Contributions are welcome, especially for **feature requests and their implementation**.  
-If you are interested in working on an existing feature request or proposing a new one, please open or comment on an issue to start the discussion.
-
----
-
-## License
-
-This project is licensed under the MIT License.
+## Bonus Notes
+- Export PDF/Markdown, streaks, goals, and offline sync can be added next as incremental modules.
